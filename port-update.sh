@@ -14,8 +14,8 @@ echo "CHECK_INTERVAL_SEC=$CHECK_INTERVAL_SEC"
 echo "ERROR_INTERVAL_SEC=$ERROR_INTERVAL_SEC"
 echo "ERROR_INTERVAL_COUNT=$ERROR_INTERVAL_COUNT"
 
-qbittorrent_address="http://$QBITTORRENT_WEBUI_HOST:$QBITTORRENT_WEBUI_PORT"
-gluetun_address="http://$GLUETUN_CONTROL_HOST:$GLUETUN_CONTROL_PORT"
+qbittorrent_base_url="http://$QBITTORRENT_WEBUI_HOST:$QBITTORRENT_WEBUI_PORT"
+gluetun_base_url="http://$GLUETUN_CONTROL_HOST:$GLUETUN_CONTROL_PORT"
 
 current_port="0"
 new_port=$current_port
@@ -34,7 +34,7 @@ do
     fi
 
     echo "Checking port..."
-    new_port=$(curl $gluetun_address/v1/openvpn/portforwardedd 2> /dev/null | jq .port)
+    new_port=$(curl $gluetun_base_url/v1/openvpn/portforwardedd 2> /dev/null | jq .port)
     echo "Received: $new_port"
 
     if [ -z "$new_port" ] || [ "$new_port" = "0" ]; then
@@ -54,7 +54,7 @@ do
 
     echo "Logging into qBittorrent WebUI"
     login_data="username=$QBITTORRENT_WEBUI_USERNAME&password=$QBITTORRENT_WEBUI_PASSWORD"
-    login_url="$qbittorrent_address/api/v2/auth/login"
+    login_url="$qbittorrent_base_url/api/v2/auth/login"
     find_cookie="/set-cookie/ {print substr(\$2, 1, length(\$2)-1)}"
     cookie=$(curl -i --data "$login_data" $login_url 2> /dev/null | awk -e "$find_cookie")
 
@@ -66,15 +66,15 @@ do
     fi
 
     echo "Sending new port to qBittorrent WebUI"
-    set_preferences_url="$qbittorrent_address/api/v2/app/setPreferences"
+    set_preferences_url="$qbittorrent_base_url/api/v2/app/setPreferences"
     curl $set_preferences_url --cookie "$cookie" -d "json={\"listen_port\":$new_port}" 2> /dev/null
 
     echo "Confirming new port"
-    get_preferences_url="$qbittorrent_address/api/v2/app/preferences"
+    get_preferences_url="$qbittorrent_base_url/api/v2/app/preferences"
     confirm_port=$(curl $get_preferences_url --cookie "$cookie" 2> /dev/null | jq .listen_port)
 
     echo "Logging out"
-    curl -X POST $qbittorrent_address/api/v2/auth/logout --cookie "$cookie" 2> /dev/null
+    curl -X POST $qbittorrent_base_url/api/v2/auth/logout --cookie "$cookie" 2> /dev/null
 
     if [ "$confirm_port" != "$new_port" ]; then
         echo "Failed updating port"
