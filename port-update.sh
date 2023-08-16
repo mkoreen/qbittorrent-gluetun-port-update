@@ -23,13 +23,15 @@ new_port=$current_port
 error_count=0
 
 echo "Waiting $INITIAL_DELAY_SEC seconds for initial delay"
-sleep $INITIAL_DELAY_SEC
+sleep $INITIAL_DELAY_SEC &
+wait $!
 
 while :
 do
     if [ $error_count -ge $ERROR_INTERVAL_COUNT ]; then
         echo "Reached maximum error count ($error_count), sleeping for $CHECK_INTERVAL_SEC sec"
-        sleep $CHECK_INTERVAL_SEC
+        sleep $CHECK_INTERVAL_SEC &
+        wait $!
         error_count=0
     fi
 
@@ -40,13 +42,15 @@ do
     if [ -z "$new_port" ] || [ "$new_port" = "0" ]; then
         echo "Error: New port is empty or 0"
         error_count=$((error_count+1))
-        sleep $ERROR_INTERVAL_SEC
+        sleep $ERROR_INTERVAL_SEC &
+        wait $!
         continue
     fi
 
     if [ "$new_port" = "$current_port" ]; then
         echo "New port is the same as current port, nothing to do"
-        sleep $CHECK_INTERVAL_SEC
+        sleep $CHECK_INTERVAL_SEC &
+        wait $!
         continue
     fi
 
@@ -61,7 +65,8 @@ do
     if [ -z "$cookie" ]; then
         echo "Failed to login to qBittorrent WebUI at $login_url"
         error_count=$((error_count+1))
-        sleep $ERROR_INTERVAL_SEC
+        sleep $ERROR_INTERVAL_SEC &
+        wait $!
         continue
     fi
 
@@ -79,7 +84,8 @@ do
     if [ "$confirm_port" != "$new_port" ]; then
         echo "Failed updating port"
         error_count=$((error_count+1))
-        sleep $ERROR_INTERVAL_SEC
+        sleep $ERROR_INTERVAL_SEC &
+        wait $!
         continue
     fi
 
@@ -87,6 +93,7 @@ do
 
     current_port=$new_port
 
-    sleep $CHECK_INTERVAL_SEC
+    sleep $CHECK_INTERVAL_SEC &
+    wait $!
 done
 
