@@ -36,7 +36,7 @@ do
     fi
 
     echo "Checking port..."
-    new_port=$(curl $gluetun_base_url/v1/openvpn/portforwardedd 2> /dev/null | jq .port)
+    new_port=$(curl $gluetun_base_url/v1/openvpn/portforwarded 2> /dev/null | jq .port)
     echo "Received: $new_port"
 
     if [ -z "$new_port" ] || [ "$new_port" = "0" ]; then
