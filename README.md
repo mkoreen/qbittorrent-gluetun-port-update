@@ -6,6 +6,52 @@ Docker container to automatically update qBittorrent's listening port from Gluet
 
 Connect your qBittorent container and this container to Gluetun. If you are using docker-compose for everything, this means `network-mode: service:gluetun`. Refer to the Gluetun Wiki for more information.
 
+Here is an example docker-compose.yml:
+
+```yml
+version: "3"
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 20144:8000     # Gluetun Control server
+      - 20143:20143    # qBittorrent WebUI
+    volumes:
+      - ./gluetun-data:/gluetun
+    environment:
+      # See https://github.com/qdm12/gluetun-wiki/tree/main/setup#setup
+      - VPN_SERVICE_PROVIDER=ivpn
+      - VPN_TYPE=openvpn
+      - OPENVPN_USER=
+      - OPENVPN_PASSWORD=
+    restart: "unless-stopped"
+  qbittorrent-vpn:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent_vpn
+    network_mode: service:gluetun
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=
+      - WEBUI_PORT=20143
+    volumes:
+      - ./qbittorrent-config:/config
+      - ./qbittorrent-downloads:/downloads
+    restart: "unless-stopped"
+  qbittorrent-port-update:
+    image: technosam/qbittorrent-gluetun-port-update:1.1
+    container_name: qbittorrent_port_update
+    network_mode: service:gluetun
+    environment:
+      - QBITTORRENT_WEBUI_PORT=20143
+      - QBITTORRENT_WEBUI_USERNAME=
+      - QBITTORRENT_WEBUI_PASSWORD=
+    restart: "unless-stopped"
+```
+
 ### Environment Variables
 
 | Variable                     | Default      | Example                        | Description                                                                                                                                                                |
