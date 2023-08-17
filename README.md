@@ -27,6 +27,7 @@ services:
       - VPN_TYPE=openvpn
       - OPENVPN_USER=
       - OPENVPN_PASSWORD=
+      - VPN_PORT_FORWARDING=on
     restart: "unless-stopped"
   qbittorrent-vpn:
     image: lscr.io/linuxserver/qbittorrent:latest
