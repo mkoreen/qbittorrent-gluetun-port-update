@@ -9,6 +9,8 @@ CENSORED_QBITTORRENT_WEBUI_PASSWORD=$(echo $QBITTORRENT_WEBUI_PASSWORD | sed 's/
 echo "QBITTORRENT_WEBUI_PASSWORD=$CENSORED_QBITTORRENT_WEBUI_PASSWORD"
 echo "GLUETUN_CONTROL_HOST=$GLUETUN_CONTROL_HOST"
 echo "GLUETUN_CONTROL_PORT=$GLUETUN_CONTROL_PORT"
+echo "GLUETUN_USER=$GLUETUN_USER"
+CENSORED_GLUETUN_PASSWORD=$(echo $GLUETUN_PASSWORD | sed 's/./*/g')
 echo "INITIAL_DELAY_SEC=$INITIAL_DELAY_SEC"
 echo "CHECK_INTERVAL_SEC=$CHECK_INTERVAL_SEC"
 echo "ERROR_INTERVAL_SEC=$ERROR_INTERVAL_SEC"
@@ -36,7 +38,7 @@ do
     fi
 
     echo "Checking port..."
-    new_port=$(curl $gluetun_base_url/v1/openvpn/portforwarded 2> /dev/null | jq .port)
+    new_port=$(curl --user "$GLUETUN_USER:$GLUETUN_PASSWORD" $gluetun_base_url/v1/openvpn/portforwarded 2> /dev/null | jq .port)
     echo "Received: $new_port"
 
     if [ -z "$new_port" ] || [ "$new_port" = "0" ]; then
